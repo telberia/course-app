@@ -19,7 +19,7 @@ class _WelcomePageState extends State<WelcomePage> {
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'assets/App/Lektion_1/vt1_eBook_Lektion_1.pdf',
+      'pdf': 'assets/App/Lektion_1/lektion1.pdf',
       'audio': [
         'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
         'assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
@@ -187,6 +187,10 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     }
   }
 
+  String _formatDuration(Duration d) {
+    return "${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -214,29 +218,31 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                     itemBuilder: (context, index) {
                       final audio = widget.audioFiles[index];
                       final audioName = audio.split('/').last;
+                      final isCurrent = _isPlaying;
                       return ListTile(
                         title: Text(audioName),
-                        subtitle: _isPlaying
-                            ? Column(
-                                children: [
-                                  Slider(
-                                    min: 0,
-                                    max: _audioDuration.inMilliseconds.toDouble(),
-                                    value: _audioPosition.inMilliseconds.clamp(0, _audioDuration.inMilliseconds).toDouble(),
-                                    onChanged: (value) async {
-                                      final position = Duration(milliseconds: value.toInt());
-                                      if (!kIsWeb) {
-                                        await _audioPlayer.seek(position);
-                                      }
-                                    },
-                                  ),
-                                  Text(
-                                    "${_audioPosition.inMinutes}:${(_audioPosition.inSeconds % 60).toString().padLeft(2, '0')} / ${_audioDuration.inMinutes}:${(_audioDuration.inSeconds % 60).toString().padLeft(2, '0')}",
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              )
-                            : null,
+                        subtitle: Column(
+                          children: [
+                            Slider(
+                              min: 0,
+                              max: _audioDuration.inMilliseconds.toDouble(),
+                              value: _audioPosition.inMilliseconds.clamp(0, _audioDuration.inMilliseconds).toDouble(),
+                              onChanged: (value) async {
+                                final position = Duration(milliseconds: value.toInt());
+                                if (!kIsWeb) {
+                                  await _audioPlayer.seek(position);
+                                }
+                              },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(_formatDuration(_audioPosition), style: const TextStyle(fontSize: 12)),
+                                Text(_formatDuration(_audioDuration), style: const TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                          ],
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
