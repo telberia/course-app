@@ -6,7 +6,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:html' as html;
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
@@ -61,15 +60,15 @@ class _WelcomePageState extends State<WelcomePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Thông tin người dùng'),
+        title: const Text('Benutzerinformationen'),
         content: user == null
-            ? const Text('Không có thông tin người dùng')
+            ? const Text('Keine Benutzerdaten gefunden')
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Email: ${user.email}'),
-                  Text('ID: ${user.id}'),
+                  Text('E-Mail: ${user.email}'),
+                  Text('Benutzer-ID: ${user.id}'),
                 ],
               ),
         actions: [
@@ -81,11 +80,11 @@ class _WelcomePageState extends State<WelcomePage> {
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
-            child: const Text('Logout'),
+            child: const Text('Abmelden'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Đóng'),
+            child: const Text('Schließen'),
           ),
         ],
       ),
@@ -96,7 +95,7 @@ class _WelcomePageState extends State<WelcomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Danh sách khóa học'),
+        title: const Text('Kursliste'),
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle),
@@ -169,17 +168,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
   void _playAudio(String audioPath) {
     if (kIsWeb) {
-      // ignore: undefined_prefixed_name
-      final audio = html.AudioElement(audioPath)
-        ..controls = false
-        ..autoplay = true;
-      audio.onTimeUpdate.listen((event) {
-        setState(() {
-          _audioDuration = Duration(milliseconds: (audio.duration * 1000).toInt());
-          _audioPosition = Duration(milliseconds: (audio.currentTime * 1000).toInt());
-        });
-      });
-      audio.play();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Audio wird nur auf Mobilgeräten unterstützt')),
+      );
     } else {
       _audioPlayer.stop();
       _audioPlayer.play(AssetSource(audioPath));
@@ -188,8 +179,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
   void _stopAudio() {
     if (kIsWeb) {
-      // Không thể stop audio HTML dễ dàng nếu không giữ reference, nên chỉ reload trang
-      html.window.location.reload();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Audio wird nur auf Mobilgeräten unterstützt')),
+      );
     } else {
       _audioPlayer.stop();
     }
@@ -202,7 +194,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       body: Column(
         children: [
           ListTile(
-            title: const Text('Xem PDF'),
+            title: const Text('PDF anzeigen'),
             onTap: () {
               Navigator.push(
                 context,
@@ -213,10 +205,10 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
             },
           ),
           const Divider(),
-          const Text('Danh sách audio', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Audiodateien', style: TextStyle(fontWeight: FontWeight.bold)),
           Expanded(
             child: widget.audioFiles.isEmpty
-                ? const Center(child: Text('Không có audio'))
+                ? const Center(child: Text('Keine Audiodateien'))
                 : ListView.builder(
                     itemCount: widget.audioFiles.length,
                     itemBuilder: (context, index) {
@@ -251,10 +243,12 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                             IconButton(
                               icon: const Icon(Icons.play_arrow),
                               onPressed: () => _playAudio(audio),
+                              tooltip: 'Abspielen',
                             ),
                             IconButton(
                               icon: const Icon(Icons.stop),
                               onPressed: _stopAudio,
+                              tooltip: 'Stopp',
                             ),
                           ],
                         ),
@@ -276,13 +270,13 @@ class PDFViewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (kIsWeb) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Xem PDF')),
-        body: const Center(child: Text('Chỉ hỗ trợ xem PDF trên mobile')),
+        appBar: AppBar(title: const Text('PDF anzeigen')),
+        body: const Center(child: Text('PDF-Anzeige nur auf Mobilgeräten unterstützt')), 
       );
     } else {
       // Mobile: dùng flutter_pdfview như cũ
       return Scaffold(
-        appBar: AppBar(title: const Text('Xem PDF')),
+        appBar: AppBar(title: const Text('PDF anzeigen')),
         body: FutureBuilder<String>(
           future: _copyAssetToTemp(pdfAssetPath),
           builder: (context, snapshot) {
@@ -290,7 +284,7 @@ class PDFViewPage extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
             if (!snapshot.hasData) {
-              return const Center(child: Text('Không tìm thấy file PDF'));
+              return const Center(child: Text('PDF-Datei nicht gefunden'));
             }
             return PDFView(
               filePath: snapshot.data!,
