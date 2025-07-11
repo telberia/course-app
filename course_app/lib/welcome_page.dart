@@ -15,11 +15,11 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  // Danh sách khóa học và file PDF/audio nhập tay
+ 
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'assets/App/Lektion_1/lektion1.pdf',
+      'pdf': 'assets/App/Lektion_1/Lektion_1.pdf',
       'audio': [
         'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
         'assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
