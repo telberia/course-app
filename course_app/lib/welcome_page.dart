@@ -20,9 +20,9 @@ class _WelcomePageState extends State<WelcomePage> {
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'assets/App/Lektion_1/Lektion_1.pdf',
+      'pdf': 'App/Lektion_1/Lektion_1.pdf',
       'audio': [
-        'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
+        'App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
         'App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
         'App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3',
         'App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3',
@@ -37,20 +37,20 @@ class _WelcomePageState extends State<WelcomePage> {
       'name': 'Lesson 2',
       'pdf': 'App/Lektion_2/vt1_eBook_Lektion_2.pdf',
       'audio': [
-        'assets/App/Lektion_2/Audio 2_12 - Text - Ich bin Studentin.mp3',
-        'assets/App/Lektion_2/Audio E2_1.mp3',
-        'assets/App/Lektion_2/audio_2_11.mp3',
-        'assets/App/Lektion_2/Tab 2_1 - Regionale Begrüßungen - ugs.mp3',
-        'assets/App/Lektion_2/Tab 2_10 - Elliptische Gegenfrage - informell und formell.mp3',
-        'assets/App/Lektion_2/Tab 2_13 - Verabschiedungen.mp3',
-        'assets/App/Lektion_2/Tab 2_2 - Begrüßungen.mp3',
-        'assets/App/Lektion_2/Tab 2_3 - Alter und Hobbys - informell.mp3',
-        'assets/App/Lektion_2/Tab 2_4 - Alter und Hobbys - formell.mp3',
-        'assets/App/Lektion_2/Tab 2_5 - Arbeit - informell.mp3',
-        'assets/App/Lektion_2/Tab 2_6 - Arbeit - formell.mp3',
-        'assets/App/Lektion_2/Tab 2_7 - Studium - informell und formell.mp3',
-        'assets/App/Lektion_2/Tab 2_8 - Studium - Verneinung_arbeiten und studieren.mp3',
-        'assets/App/Lektion_2/Tab 2_9 - Berufliche Situation - Alternativen.mp3',
+        'App/Lektion_2/Audio 2_12 - Text - Ich bin Studentin.mp3',
+        'App/Lektion_2/Audio E2_1.mp3',
+        'App/Lektion_2/audio_2_11.mp3',
+        'App/Lektion_2/Tab 2_1 - Regionale Begrüßungen - ugs.mp3',
+        'App/Lektion_2/Tab 2_10 - Elliptische Gegenfrage - informell und formell.mp3',
+        'App/Lektion_2/Tab 2_13 - Verabschiedungen.mp3',
+        'App/Lektion_2/Tab 2_2 - Begrüßungen.mp3',
+        'App/Lektion_2/Tab 2_3 - Alter und Hobbys - informell.mp3',
+        'App/Lektion_2/Tab 2_4 - Alter und Hobbys - formell.mp3',
+        'App/Lektion_2/Tab 2_5 - Arbeit - informell.mp3',
+        'App/Lektion_2/Tab 2_6 - Arbeit - formell.mp3',
+        'App/Lektion_2/Tab 2_7 - Studium - informell und formell.mp3',
+        'App/Lektion_2/Tab 2_8 - Studium - Verneinung_arbeiten und studieren.mp3',
+        'App/Lektion_2/Tab 2_9 - Berufliche Situation - Alternativen.mp3',
       ],
     },
     // Thêm các lesson khác ở đây nếu muốn
@@ -154,7 +154,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   Duration _audioDuration = Duration.zero;
   Duration _audioPosition = Duration.zero;
   bool _isPlaying = false;
-  String? _audioError; // Thêm biến lưu lỗi
+  String? _audioError;
+  int? _currentAudioIndex; // Lưu index audio đang phát
 
   @override
   void initState() {
@@ -178,14 +179,17 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     super.dispose();
   }
 
-  void _playAudio(String audioPath) async {
+  void _playAudio(String audioPath, int index) async {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Audio wird nur auf Mobilgeräten unterstützt')),
       );
     } else {
       try {
-        setState(() { _audioError = null; });
+        setState(() {
+          _audioError = null;
+          _currentAudioIndex = index;
+        });
         await _audioPlayer.stop();
         await _audioPlayer.play(AssetSource(audioPath));
       } catch (e) {
@@ -237,7 +241,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
           ),
           const Divider(),
           const Text('Audiodateien', style: TextStyle(fontWeight: FontWeight.bold)),
-          if (_audioError != null) // Hiển thị lỗi nếu có
+          if (_audioError != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -253,7 +257,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                     itemBuilder: (context, index) {
                       final audio = widget.audioFiles[index];
                       final audioName = audio.split('/').last;
-                      final isCurrent = _isPlaying;
+                      final isCurrent = index == _currentAudioIndex;
                       return ListTile(
                         title: Text(audioName),
                         subtitle: Column(
@@ -261,19 +265,29 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                             Slider(
                               min: 0,
                               max: _audioDuration.inMilliseconds.toDouble(),
-                              value: _audioPosition.inMilliseconds.clamp(0, _audioDuration.inMilliseconds).toDouble(),
-                              onChanged: (value) async {
-                                final position = Duration(milliseconds: value.toInt());
-                                if (!kIsWeb) {
-                                  await _audioPlayer.seek(position);
-                                }
-                              },
+                              value: isCurrent
+                                  ? _audioPosition.inMilliseconds.clamp(0, _audioDuration.inMilliseconds).toDouble()
+                                  : 0,
+                              onChanged: isCurrent
+                                  ? (value) async {
+                                      final position = Duration(milliseconds: value.toInt());
+                                      if (!kIsWeb) {
+                                        await _audioPlayer.seek(position);
+                                      }
+                                    }
+                                  : null,
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(_formatDuration(_audioPosition), style: const TextStyle(fontSize: 12)),
-                                Text(_formatDuration(_audioDuration), style: const TextStyle(fontSize: 12)),
+                                Text(
+                                  isCurrent ? _formatDuration(_audioPosition) : '0:00',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  isCurrent ? _formatDuration(_audioDuration) : '0:00',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
                               ],
                             ),
                           ],
@@ -283,7 +297,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.play_arrow),
-                              onPressed: () => _playAudio(audio),
+                              onPressed: () => _playAudio(audio, index),
                               tooltip: 'Abspielen',
                             ),
                             IconButton(
@@ -319,7 +333,7 @@ class PDFViewPage extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(title: const Text('PDF anzeigen')),
         body: FutureBuilder<String>(
-          future: _copyAssetToTemp('assets/' + pdfAssetPath),
+          future: _copyAssetToTemp('' + pdfAssetPath),
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
@@ -357,7 +371,7 @@ class PDFViewPage extends StatelessWidget {
 
   Future<String> _copyAssetToTemp(String assetPath) async {
     try {
-      final bytes = await rootBundle.load(assetPath);
+      final bytes = await rootBundle.load('assets/' + assetPath);
       final dir = await Directory.systemTemp.createTemp();
       final file = File('${dir.path}/${assetPath.split('/').last}');
       await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
