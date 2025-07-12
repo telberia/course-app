@@ -20,9 +20,9 @@ class _WelcomePageState extends State<WelcomePage> {
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'assets/App/Lektion_1/Lektion_1.pdf',
+      'pdf': 'App/Lektion_1/Lektion_1.pdf',
       'audio': [
-        'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
+        'App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
         'assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
         'assets/App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3',
         'assets/App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3',
