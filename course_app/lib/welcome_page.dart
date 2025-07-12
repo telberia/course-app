@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class WelcomePage extends StatefulWidget {
-  const WelcomePage({Key? key}) : super(key: key);
+  const WelcomePage({super.key});
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -19,9 +19,9 @@ class _WelcomePageState extends State<WelcomePage> {
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'assets/App/Lektion_1/Lektion_1.pdf',
+      'pdf': 'App/Lektion_1/Lektion_1.pdf',
       'audio': [
-        'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
+        'App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
         'assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
         'assets/App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3',
         'assets/App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3',
@@ -132,7 +132,7 @@ class LessonDetailPage extends StatefulWidget {
   final String lessonName;
   final String pdfPath;
   final List<String> audioFiles;
-  const LessonDetailPage({Key? key, required this.lessonName, required this.pdfPath, required this.audioFiles}) : super(key: key);
+  const LessonDetailPage({super.key, required this.lessonName, required this.pdfPath, required this.audioFiles});
 
   @override
   State<LessonDetailPage> createState() => _LessonDetailPageState();
@@ -270,7 +270,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
 class PDFViewPage extends StatelessWidget {
   final String pdfAssetPath;
-  const PDFViewPage({Key? key, required this.pdfAssetPath}) : super(key: key);
+  const PDFViewPage({super.key, required this.pdfAssetPath});
 
   @override
   Widget build(BuildContext context) {
