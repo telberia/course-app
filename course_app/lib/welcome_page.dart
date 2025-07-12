@@ -20,22 +20,22 @@ class _WelcomePageState extends State<WelcomePage> {
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'App/Lektion_1/Lektion_1.pdf',
+      'pdf': 'assets/App/Lektion_1/Lektion_1.pdf',
       'audio': [
-        'App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
-        'assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
-        'assets/App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3',
-        'assets/App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3',
-        'assets/App/Lektion_1/Tab 1_5 - Vorstellung - Alternative.mp3',
-        'assets/App/Lektion_1/Tab 1_8 - Ergänzung zum Dialog.mp3',
-        'assets/App/Lektion_1/Audio_E1_1.mp3',
-        'assets/App/Lektion_1/audio_1_6.mp3',
-        'assets/App/Lektion_1/audio_1_7.mp3',
+        'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
+        'App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
+        'App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3',
+        'App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3',
+        'App/Lektion_1/Tab 1_5 - Vorstellung - Alternative.mp3',
+        'App/Lektion_1/Tab 1_8 - Ergänzung zum Dialog.mp3',
+        'App/Lektion_1/Audio_E1_1.mp3',
+        'App/Lektion_1/audio_1_6.mp3',
+        'App/Lektion_1/audio_1_7.mp3',
       ],
     },
     {
       'name': 'Lesson 2',
-      'pdf': 'assets/App/Lektion_2/vt1_eBook_Lektion_2.pdf',
+      'pdf': 'App/Lektion_2/vt1_eBook_Lektion_2.pdf',
       'audio': [
         'assets/App/Lektion_2/Audio 2_12 - Text - Ich bin Studentin.mp3',
         'assets/App/Lektion_2/Audio E2_1.mp3',
@@ -154,6 +154,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   Duration _audioDuration = Duration.zero;
   Duration _audioPosition = Duration.zero;
   bool _isPlaying = false;
+  String? _audioError; // Thêm biến lưu lỗi
 
   @override
   void initState() {
@@ -184,9 +185,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       );
     } else {
       try {
+        setState(() { _audioError = null; });
         await _audioPlayer.stop();
         await _audioPlayer.play(AssetSource(audioPath));
       } catch (e) {
+        setState(() { _audioError = 'Fehler beim Abspielen: $e'; });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Fehler beim Abspielen: $e')),
         );
@@ -234,6 +237,14 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
           ),
           const Divider(),
           const Text('Audiodateien', style: TextStyle(fontWeight: FontWeight.bold)),
+          if (_audioError != null) // Hiển thị lỗi nếu có
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                _audioError!,
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+            ),
           Expanded(
             child: widget.audioFiles.isEmpty
                 ? const Center(child: Text('Keine Audiodateien'))
@@ -308,7 +319,7 @@ class PDFViewPage extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(title: const Text('PDF anzeigen')),
         body: FutureBuilder<String>(
-          future: _copyAssetToTemp(pdfAssetPath),
+          future: _copyAssetToTemp('assets/' + pdfAssetPath),
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
@@ -320,7 +331,7 @@ class PDFViewPage extends StatelessWidget {
                   children: [
                     const Icon(Icons.error, size: 64, color: Colors.red),
                     const SizedBox(height: 16),
-                    Text('Fehler: ${snapshot.error}'),
+                    Text('Fehler:  ${snapshot.error}'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {

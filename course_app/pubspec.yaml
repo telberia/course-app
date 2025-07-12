@@ -62,7 +62,17 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/
     - assets/App/
+    - assets/App/Lektion_1/Lektion_1.pdf
+    - assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3
+    - assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3
+    - assets/App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3
+    - assets/App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3
+    - assets/App/Lektion_1/Tab 1_5 - Vorstellung - Alternative.mp3
+    - assets/App/Lektion_1/Tab 1_8 - Ergänzung zum Dialog.mp3
+    - assets/App/Lektion_1/Audio_E1_1.mp3
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
