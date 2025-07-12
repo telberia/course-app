@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'debug_page.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -19,9 +20,9 @@ class _WelcomePageState extends State<WelcomePage> {
   final List<Map<String, dynamic>> lessons = [
     {
       'name': 'Lesson 1',
-      'pdf': 'App/Lektion_1/Lektion_1.pdf',
+      'pdf': 'assets/App/Lektion_1/Lektion_1.pdf',
       'audio': [
-        'App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
+        'assets/App/Lektion_1/Tab 1_1 - Grußformeln und Befinden - informell.mp3',
         'assets/App/Lektion_1/Tab 1_2 - Grußformeln und Befinden - formell.mp3',
         'assets/App/Lektion_1/Tab 1_3 - Vorstellung - informell.mp3',
         'assets/App/Lektion_1/Tab 1_4 - Vorstellung - formell.mp3',
@@ -98,6 +99,16 @@ class _WelcomePageState extends State<WelcomePage> {
         title: const Text('Kursliste'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DebugPage()),
+              );
+            },
+            tooltip: 'Debug Info',
+          ),
+          IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: _showUserInfoDialog,
           ),
@@ -166,24 +177,36 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     super.dispose();
   }
 
-  void _playAudio(String audioPath) {
+  void _playAudio(String audioPath) async {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Audio wird nur auf Mobilgeräten unterstützt')),
       );
     } else {
-      _audioPlayer.stop();
-      _audioPlayer.play(AssetSource(audioPath));
+      try {
+        await _audioPlayer.stop();
+        await _audioPlayer.play(AssetSource(audioPath));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Abspielen: $e')),
+        );
+      }
     }
   }
 
-  void _stopAudio() {
+  void _stopAudio() async {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Audio wird nur auf Mobilgeräten unterstützt')),
       );
     } else {
-      _audioPlayer.stop();
+      try {
+        await _audioPlayer.stop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Stoppen: $e')),
+        );
+      }
     }
   }
 
@@ -199,6 +222,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         children: [
           ListTile(
             title: const Text('PDF anzeigen'),
+            subtitle: Text('Pfad: ${widget.pdfPath}'),
             onTap: () {
               Navigator.push(
                 context,
@@ -289,6 +313,25 @@ class PDFViewPage extends StatelessWidget {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
             }
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text('Fehler: ${snapshot.error}'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Zurück'),
+                    ),
+                  ],
+                ),
+              );
+            }
             if (!snapshot.hasData) {
               return const Center(child: Text('PDF-Datei nicht gefunden'));
             }
@@ -302,10 +345,14 @@ class PDFViewPage extends StatelessWidget {
   }
 
   Future<String> _copyAssetToTemp(String assetPath) async {
-    final bytes = await rootBundle.load(assetPath);
-    final dir = await Directory.systemTemp.createTemp();
-    final file = File('${dir.path}/${assetPath.split('/').last}');
-    await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
-    return file.path;
+    try {
+      final bytes = await rootBundle.load(assetPath);
+      final dir = await Directory.systemTemp.createTemp();
+      final file = File('${dir.path}/${assetPath.split('/').last}');
+      await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
+      return file.path;
+    } catch (e) {
+      throw Exception('Fehler beim Laden der PDF-Datei: $e');
+    }
   }
 } 
